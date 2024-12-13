@@ -1,0 +1,19 @@
+[package]
+name = "bevy_undo_redo"
+version = "0.1.0"
+edition = "2021"
+description = "An implementation of an undo/redo system for the Bevy Engine, inspired by Godot Engine's UndoRedo object."
+repository = "https://github.com/LikeLakers2/bevy_undo_redo"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+	[dependencies.bevy_app]
+	version = "0.15"
+	default-features = false
+	
+	[dependencies.bevy_ecs]
+	version = "0.15"
+	default-features = false
+	
+	[dependencies.bevy_reflect]
+	version = "0.15"
