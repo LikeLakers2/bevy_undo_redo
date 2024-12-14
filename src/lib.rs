@@ -1,40 +1,94 @@
-use std::any::Any;
+use bevy_ecs::{system::Resource, world::World};
 
-use bevy_ecs::system::Resource;
+use crate::{action::Action, operation::Operation};
 
-use crate::operation::Operation;
-
+pub mod action;
 pub mod operation;
 
 #[derive(Default, Resource)]
 pub struct UndoRedo {
-	past_actions: Vec<Action>,
-	queued_actions: Vec<Action>,
+	/// A list of all actions that have been created in this UndoRedo. This vector contains two
+	/// types of actions:
+	///
+	/// * A committed action. This action has already been applied to the world, and can be undone.
+	/// * A queued action. This action has been created, and possibly assigned a set of operations,
+	///   but has not been committed to the world.
+	action_list: Vec<Action>,
+	/// The first index in `action_list` to be a queued action.
+	///
+	/// Actions before this index are all committed actions, and actions at or after this index are
+	/// all queued actions.
+	///
+	/// This is used over two `Vec<Action>`s as a small optimization - it requires less processing
+	/// to change a `usize`, than it does to remove a
+	list_cursor: usize,
 }
 
 impl UndoRedo {
-	pub fn create_action(&mut self, name: String) -> &mut Action {
-		let new_action = Action {
-			name,
-			op_list: vec![],
-		};
+	pub fn create_queued_action(&mut self, name: String) -> &mut Action {
+		let new_action = Action::new(name);
 
-		self.queued_actions.push(new_action);
+		self.action_list.push(new_action);
 
-		self.queued_actions
+		self.action_list
 			.last_mut()
 			.expect("queued action list should not be empty, as we just pushed an item")
 	}
-}
 
-pub struct Action {
-	name: String,
-	/// The list of operations this action takes.
-	op_list: Vec<Box<dyn Operation>>,
-}
+	pub fn commit_queued_actions(&mut self, world: &mut World) {
+		if self.list_cursor == self.action_list.len() {
+			return;
+		}
 
-impl Action {
-	pub fn push<O: Operation>(&mut self, operation: O) {
-		self.op_list.push(Box::new(operation))
+		let apply_command_queues = self
+			.action_list
+			.iter()
+			.skip(self.list_cursor)
+			.map(Operation::get_apply_command);
+		self.list_cursor = self.action_list.len();
+
+		for mut apply_command_queue in apply_command_queues {
+			apply_command_queue.apply(world);
+		}
+	}
+
+	pub fn redo(&mut self, world: &mut World) {
+		// If the cursor is already at the end of `self.action_list`, we have no action to apply. In
+		// this case, we return without doing anything.
+		if self.list_cursor == self.action_list.len() {
+			return;
+		}
+
+		// Otherwise, we get the first queued action's command queue...
+		let mut apply_command_queue = self
+			.action_list
+			.get(self.list_cursor)
+			.map(Operation::get_apply_command)
+			.expect("next action should exist");
+		// Then increment the list cursor...
+		self.list_cursor += 1;
+
+		// And apply it.
+		apply_command_queue.apply(world);
+	}
+
+	pub fn undo(&mut self, world: &mut World) {
+		// If the cursor is already at the beginning of `self.action_list`, we have no action to
+		// undo. In this case, we return without doing anything.
+		if self.list_cursor == 0 {
+			return;
+		}
+
+		// Otherwise, we decrement the list cursor...
+		self.list_cursor -= 1;
+		// Then we use the new position to get the last committed action's undo command queue...
+		let mut undo_command_queue = self
+			.action_list
+			.get(self.list_cursor)
+			.map(Operation::get_undo_command)
+			.expect("previous action should exist");
+
+		// And apply it.
+		undo_command_queue.apply(world);
 	}
 }

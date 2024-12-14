@@ -1,10 +1,10 @@
-use std::{any::Any, fmt::Debug};
+use std::any::Any;
 
 use bevy_ecs::world::CommandQueue;
 
 pub trait Operation: Send + Sync + 'static {
-	fn apply(&self) -> CommandQueue;
-	fn undo(&self) -> CommandQueue;
+	fn get_apply_command(&self) -> CommandQueue;
+	fn get_undo_command(&self) -> CommandQueue;
 }
 
 pub struct Details {
