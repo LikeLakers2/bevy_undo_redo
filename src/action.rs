@@ -29,7 +29,8 @@ impl Operation for Action {
 	}
 
 	fn undo(&self, commands: &mut Commands) {
-		for op in &self.op_list {
+		let reversed_op_list = self.op_list.iter().rev();
+		for op in reversed_op_list {
 			op.undo(commands);
 		}
 	}
