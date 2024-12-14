@@ -1,4 +1,4 @@
-use bevy_ecs::world::CommandQueue;
+use bevy_ecs::system::Commands;
 
 use crate::operation::Operation;
 
@@ -22,21 +22,15 @@ impl Action {
 }
 
 impl Operation for Action {
-	fn get_apply_command(&self) -> CommandQueue {
-		let mut queue = CommandQueue::default();
+	fn apply(&self, commands: &mut Commands) {
 		for op in &self.op_list {
-			let mut op_queue = op.get_apply_command();
-			queue.append(&mut op_queue);
+			op.apply(commands);
 		}
-		queue
 	}
 
-	fn get_undo_command(&self) -> CommandQueue {
-		let mut queue = CommandQueue::default();
+	fn undo(&self, commands: &mut Commands) {
 		for op in &self.op_list {
-			let mut op_queue = op.get_undo_command();
-			queue.append(&mut op_queue);
+			op.undo(commands);
 		}
-		queue
 	}
 }
