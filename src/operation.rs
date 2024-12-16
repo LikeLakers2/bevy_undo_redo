@@ -18,7 +18,7 @@ pub struct Details {
 
 pub struct OperationSet {
 	name: String,
-	/// The list of operations this action takes.
+	/// The set of operations that this OperationSet groups together.
 	op_list: Vec<Box<dyn Operation>>,
 }
 

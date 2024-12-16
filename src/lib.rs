@@ -11,78 +11,71 @@ pub mod operation;
 
 #[derive(Default, Resource)]
 pub struct UndoRedo {
-	/// A list of all actions that have been created in this UndoRedo. This vector contains two
-	/// types of actions:
-	///
-	/// * A committed action. This action has already been applied to the world, and can be undone.
-	/// * A queued action. This action has been created, and possibly assigned a set of operations,
-	///   but has not been committed to the world.
-	action_list: VecDeque<Box<dyn Operation>>,
-	/// The first index in `action_list` to be a queued action.
-	///
-	/// Actions before this index are all committed actions, and actions at or after this index are
-	/// all queued actions.
-	///
-	/// This is used over two `Vec<Action>`s as a small optimization - it requires less processing
-	/// to change a `usize`, than it does to remove a
+	/// A list of all operations that have been pushed to this UndoRedo.
+	pushed_operations: VecDeque<Box<dyn Operation>>,
+	/// An index that represents a cursor into `self.pushed_operations`.
+	/// 
+	/// Operations before this cursor (called "committed operations") have all been previously
+	/// applied to the World, and can be undone. Operations after this cursor (called "queued
+	/// operations") are waiting to be committed to the World, and may have previously been undone.
 	list_cursor: usize,
 }
 
 impl UndoRedo {
 	pub fn push_operation<O: Operation>(&mut self, operation: O) {
-		self.action_list.push_back(Box::new(operation));
+		self.pushed_operations.push_back(Box::new(operation));
 	}
 
-	/// Applies all actions that are queued.
+	/// Applies all operations that are queued.
 	pub fn apply_queued_operation(&mut self, commands: &mut Commands) -> Result<(), Error> {
-		// If the cursor is already at the end of `self.action_list`, we have no actions to apply.
-		if self.list_cursor == self.action_list.len() {
+		// If the cursor is already at the end of `self.pushed_operations`, we have no actions to apply.
+		if self.list_cursor == self.pushed_operations.len() {
 			return Err(Error::NoActionAvailable);
 		}
 
-		let queued_actions = self.action_list.iter().skip(self.list_cursor);
+		let queued_actions = self.pushed_operations.iter().skip(self.list_cursor);
 
 		for action in queued_actions {
 			action.apply(commands);
 		}
 
-		self.list_cursor = self.action_list.len();
+		self.list_cursor = self.pushed_operations.len();
 
 		Ok(())
 	}
 
-	/// Applies the next queued action, if any. If there are no queued actions, this does nothing.
+	/// Applies the next queued operation, if any. If there are no queued actions, this does nothing.
 	pub fn redo(&mut self, commands: &mut Commands) -> Result<(), Error> {
-		// If the cursor is already at the end of `self.action_list`, we have no action to apply. In
-		// this case, we return an error describing as such.
-		if self.list_cursor == self.action_list.len() {
+		// If the cursor is already at the end of `self.pushed_operations`, we have no operation to
+		// apply. In this case, we return an error describing as such.
+		if self.list_cursor == self.pushed_operations.len() {
 			return Err(Error::NoActionAvailable);
 		}
 
-		// Then get the next queued action action...
+		// Otherwise, get the next queued operation...
 		//
-		// Note: Because we just verified that we're not at the end of the action list, we can
-		// safely assume this will be a `Some(_)` value.
+		// Note: Because we just verified that we're not at the end of the pushed operations list,
+		// we can safely assume this will be a `Some(_)` value.
 		let next_queued_action = self
-			.action_list
+			.pushed_operations
 			.get(self.list_cursor)
 			.expect("next action should exist");
 
 		// Then have it submit all the commands needed to apply...
 		next_queued_action.apply(commands);
 
-		// Now that we've applied the action, the cursor needs to be updated to point to the next
-		// queued action (or to the end, if none are queued).
+		// Now that we've applied the operation, the cursor needs to be updated to point to the next
+		// queued operation (or to the end, if none are queued).
 		self.list_cursor += 1;
 
 		Ok(())
 	}
 
-	/// Undoes the last committed action, if any. If there are no committed actions, this does
+	/// Undoes the last committed operation, if any. If there are no committed operations, this does
 	/// nothing.
 	pub fn undo(&mut self, commands: &mut Commands) -> Result<(), Error> {
-		// If the cursor is already at the beginning of `self.action_list`, we have no action to
-		// undo.
+		// If the cursor is already at the beginning of `self.pushed_operations`, we have no action
+		// to undo.
 		if self.list_cursor == 0 {
 			return Err(Error::NoActionAvailable);
 		}
@@ -90,12 +83,12 @@ impl UndoRedo {
 		// Then, decrement the list cursor...
 		self.list_cursor -= 1;
 
-		// Then, use the new cursor position to get the last committed action...
+		// Then, use the new cursor position to get the last committed operation...
 		//
-		// Note: Because we just verified that we're not at the beginning of the action list, we can
-		// safely assume this will be a `Some(_)` value.
+		// Note: Because we just verified that we're not at the beginning of the pushed operations
+		// list, we can safely assume this will be a `Some(_)` value.
 		let last_committed_action = self
-			.action_list
+			.pushed_operations
 			.get(self.list_cursor)
 			.expect("previous action should exist");
 
