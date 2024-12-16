@@ -35,19 +35,23 @@ impl UndoRedo {
 			.expect("queued action list should not be empty, as we just pushed an item")
 	}
 
-	pub fn commit_queued_actions(&mut self, commands: &mut Commands) {
+	/// Applies all actions that are queued.
+	pub fn apply_queued_actions(&mut self, commands: &mut Commands) {
+		// If the cursor is already at the end of `self.action_list`, we have no actions to apply.
 		if self.list_cursor == self.action_list.len() {
 			return;
 		}
 
 		let queued_actions = self.action_list.iter().skip(self.list_cursor);
-		self.list_cursor = self.action_list.len();
 
 		for action in queued_actions {
 			action.apply(commands);
 		}
+
+		self.list_cursor = self.action_list.len();
 	}
 
+	/// Applies the next queued action, if any. If there are no queued actions, this does nothing.
 	pub fn redo(&mut self, commands: &mut Commands) {
 		// If the cursor is already at the end of `self.action_list`, we have no action to apply. In
 		// this case, we return without doing anything.
@@ -69,6 +73,8 @@ impl UndoRedo {
 		self.list_cursor += 1;
 	}
 
+	/// Undoes the last committed action, if any. If there are no committed actions, this does
+	/// nothing.
 	pub fn undo(&mut self, commands: &mut Commands) {
 		// If the cursor is already at the beginning of `self.action_list`, we have no action to
 		// undo. In this case, we return without doing anything.
