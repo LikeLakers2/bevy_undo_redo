@@ -15,3 +15,37 @@ pub struct Details {
 	/// whatever they need.
 	additional_info: Box<dyn Any>,
 }
+
+pub struct OperationSet {
+	name: String,
+	/// The list of operations this action takes.
+	op_list: Vec<Box<dyn Operation>>,
+}
+
+impl OperationSet {
+	pub fn new(name: String) -> Self {
+		Self {
+			name,
+			op_list: vec![],
+		}
+	}
+
+	pub fn push<O: Operation>(&mut self, operation: O) {
+		self.op_list.push(Box::new(operation))
+	}
+}
+
+impl Operation for OperationSet {
+	fn apply(&self, commands: &mut Commands) {
+		for op in &self.op_list {
+			op.apply(commands);
+		}
+	}
+
+	fn undo(&self, commands: &mut Commands) {
+		let reversed_op_list = self.op_list.iter().rev();
+		for op in reversed_op_list {
+			op.undo(commands);
+		}
+	}
+}
