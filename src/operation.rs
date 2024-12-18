@@ -1,4 +1,4 @@
-use std::any::Any;
+use core::any::Any;
 
 use bevy_ecs::system::Commands;
 
@@ -16,13 +16,14 @@ pub struct Details {
 	additional_info: Box<dyn Any>,
 }
 
-pub struct OperationSet {
+pub struct Set {
 	name: String,
-	/// The set of operations that this OperationSet groups together.
+	/// The set of operations that this [`OperationSet`] groups together.
 	op_list: Vec<Box<dyn Operation>>,
 }
 
-impl OperationSet {
+impl Set {
+	#[must_use]
 	pub fn new(name: String) -> Self {
 		Self {
 			name,
@@ -31,11 +32,11 @@ impl OperationSet {
 	}
 
 	pub fn push<O: Operation>(&mut self, operation: O) {
-		self.op_list.push(Box::new(operation))
+		self.op_list.push(Box::new(operation));
 	}
 }
 
-impl Operation for OperationSet {
+impl Operation for Set {
 	fn apply(&self, commands: &mut Commands) {
 		for op in &self.op_list {
 			op.apply(commands);

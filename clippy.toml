@@ -1,0 +1,11 @@
+# We allow duplicate dependencies where they are dependencies of dependencies.
+allowed-duplicate-crates = ["fixedbitset", "hashbrown"]
+
+# Extensively documenting all items is a good idea, as it reduces the workload when needing to
+# (re)learn the codebase.
+check-private-items = true
+
+# We require vague or often-renamed imports to be given a more meaningful name.
+enforced-import-renames = [
+	{ path = "core::fmt::Result", rename = "FmtResult" }
+]
