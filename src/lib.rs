@@ -1,3 +1,5 @@
+//! `bevy_undo_redo` is an implementation of an undo/redo system for the Bevy game engine.
+
 // NOTE: Lints are sorted using the following process. For each lint you want to find or add to the
 // list, follow the steps here in order:
 // 1. Where a lint does not have a `reason = ...` specified, it must go to the bottom of the lint
@@ -14,18 +16,6 @@
 	clippy::allow_attributes_without_reason,
 	reason = "All exceptions to any lints must justify their reasoning."
 )]
-#![forbid(
-	clippy::missing_enforced_import_renames,
-	reason = "We require vague or often-renamed imports to be given a more meaningful name."
-)]
-#![forbid(
-	//missing_docs,
-	//clippy::missing_docs_in_private_items,
-	clippy::missing_errors_doc,
-	// `clippy::missing_panics_docs` is set to deny - see its lint attribute for why.
-	clippy::missing_safety_doc,
-	reason = "Extensively documenting all items is a good idea, as it reduces the workload when needing to (re)learn the codebase."
-)]
 #![deny(
 	// `clippy::missing_panics_docs` is considered a forbidden lint. However, it has some false
 	// positives which trigger the lint unnecessarily. For an example, see `History::push()`'s code.
@@ -33,13 +23,19 @@
 	// All exceptions for `clippy::missing_panics_docs` must be marked as `#[expect()]`, and a reason
 	// must be given.
 	clippy::missing_panics_doc,
-	reason = "Extensively documenting all items is a good idea, as it reduces the workload when needing to (re)learn the codebase."
 )]
 #![forbid(
 	clippy::allow_attributes,
 	clippy::cargo_common_metadata,
-	//dead_code
+	dead_code,
 	clippy::doc_markdown,
+	clippy::empty_docs,
+	missing_docs,
+	clippy::missing_docs_in_private_items,
+	clippy::missing_enforced_import_renames,
+	clippy::missing_errors_doc,
+	// `clippy::missing_panics_docs` is set to deny - see its lint attribute for why.
+	clippy::missing_safety_doc,
 	clippy::module_name_repetitions,
 	clippy::multiple_crate_versions,
 	clippy::must_use_candidate,
@@ -60,8 +56,11 @@ use crate::operation::Operation;
 
 pub mod operation;
 
+/// A high-level interface for implementing undo/redo operations.
 #[derive(Default, Resource)]
 pub struct UndoRedo {
+	/// The collection which manages the list of committed operations, and acts as a pointer into
+	/// that set of items.
 	history: History<Box<dyn Operation>>,
 	/// A list of operations that have been pushed to this [`UndoRedo`], but have not been applied
 	/// to the World.
@@ -69,6 +68,12 @@ pub struct UndoRedo {
 }
 
 impl UndoRedo {
+	/// Pushes an operation into the list of queued operations.
+	///
+	/// After pushing one or more operations, call [`Self::apply_queued_operations()`] to apply the
+	/// operation(s) to the [`World`].
+	///
+	/// [`World`]: bevy_ecs::world::World
 	pub fn push_operation<O: Operation>(&mut self, operation: O) {
 		self.queued_operations.push_back(Box::new(operation));
 	}
@@ -123,28 +128,38 @@ impl UndoRedo {
 	}
 }
 
+/// A collection which holds a set of items that represents the history of something, and acts as a
+/// cursor into that set of items.
+///
+/// Unlike [`UndoRedo`], this struct does not affect a [`World`] when items are pushed to it. It
+/// only acts as a pointer into a set of items.
+///
+/// [`World`]: bevy_ecs::world::World
 pub struct History<T> {
-	/// A list of all operations that have been committed, in the order they were committed.
+	/// A list of all items that have been committed, in the order they were committed. The
+	/// front-most item is the oldest committed item, and the back-most item is the newest committed
+	/// item.
 	committed: VecDeque<T>,
-	/// A list of all operations that were committed, but have subsequently been undone. Flushing
-	/// the queued operations list will clear this list.
-	// TODO: Document on the functions that flushing the queued operations list will clear this list
-	// "Any operations that have been undone and not subsequently redone will be lost to time"
-	//
-	// TODO: Maybe combine this into `history` and use a `usize` as a cursor for which ops are
-	// committed and which were undone?
+	/// A list of all items that were committed, but have subsequently been undone. Items at the end
+	/// of the list are the most recently undone.
+	// NOTE: Because we only care about items at one end of this list, we use a Vec rather than a
+	// VecDeque, to gain a small amount of free performance.
 	undone: Vec<T>,
-	/// The maximum length of this history. Any committed operations past this limit will be
-	/// automatically culled.
-	limit: Option<NonZeroUsize>,
+	/// The maximum length of this history. Any committed items past this limit will be
+	/// automatically culled the next time an item is pushed.
+	pub limit: Option<NonZeroUsize>,
 }
 
 impl<T> History<T> {
+	/// Pushes an item to the history.
+	///
+	/// If a history limit is set, any items past the limit will be removed, plus one more to make
+	/// space for the item being pushed.
 	pub fn push(&mut self, item: T) {
 		if let Some(limit) = self.limit {
-			// If we have more committed operations than the limit, remove items from the committed
-			// list until we're at the limit. Then, remove one more to make space for the operation
-			// we're about to push.
+			// If we have more committed items than the limit, remove items from the committed
+			// list until we're at the limit. Then, remove one more to make space for the item we're
+			// about to push.
 			while limit.get() <= self.committed.len() {
 				self.committed.pop_front();
 			}
@@ -153,33 +168,34 @@ impl<T> History<T> {
 		self.committed.push_back(item);
 	}
 
-	/// [TODO: Description]
+	/// Marks the last undone item as "committed", and returns a reference to it.
 	///
 	/// # Errors
-	/// * [`Error::NoApplicableHistory`] - No operations have been undone since the last time (if any)
-	///   queued operations were applied.
+	/// * [`Error::NoApplicableHistory`] - If there is no history available to redo. This usually
+	///   occurs if there haven't been any calls to [`Self::undo()`] since the last time an item was
+	///   pushed.
 	#[expect(
 		clippy::missing_panics_doc,
 		reason = "This function cannot panic under normal circumstances, as the conditions which would cause those panics are handled beforehand."
 	)]
 	pub fn redo(&mut self) -> Result<&T, Error> {
-		// If there are no operations in the history, we have no work to do. Let the caller know.
+		// If there are no items in the history, we have no work to do. Let the caller know.
 		if self.undone.is_empty() {
 			return Err(Error::NoApplicableHistory);
 		}
 
-		// Otherwise, pop an operation off the end of the undone list...
+		// Otherwise, pop an item off the end of the undone list...
 		//
 		// NOTE: This cannot panic, as we just verified that `!self.undone.is_empty()`.
-		let last_undone_operation = self.undone.pop().expect("undone list should not be empty");
+		let last_undone_item = self.undone.pop().expect("undone list should not be empty");
 
 		// And add that item to the end of the committed list.
-		self.committed.push_back(last_undone_operation);
+		self.committed.push_back(last_undone_item);
 
 		// Finally, return a reference to the item we just moved between list.
 		//
-		// NOTE: We unfortunately can't just return `&last_undone_operation`, as Rust seems to yell
-		// at us if we try.
+		// NOTE: We unfortunately can't just return `&last_undone_item`, as Rust seems to yell at us
+		// if we try.
 		//
 		// NOTE: This cannot panic, as we've just pushed an item to `self.committed`.
 		let item_ref = self
@@ -190,35 +206,35 @@ impl<T> History<T> {
 		Ok(item_ref)
 	}
 
-	/// [TODO: Description]
+	/// Marks the last committed item as "undone", and returns a reference to it.
 	///
 	/// # Errors
-	/// * [`Error::NoApplicableHistory`] - There are no operations available to undo.
+	/// * [`Error::NoApplicableHistory`] - If there is no history available to undo.
 	#[expect(
 		clippy::missing_panics_doc,
 		reason = "This function cannot panic under normal circumstances, as the conditions which would cause those panics are handled beforehand."
 	)]
 	pub fn undo(&mut self) -> Result<&T, Error> {
-		// If there are no operations in the history, we have no work to do. Let the caller know.
+		// If there are no items in the history, we have no work to do. Let the caller know.
 		if self.committed.is_empty() {
 			return Err(Error::NoApplicableHistory);
 		}
 
-		// Otherwise, pop an operation off the end of the history...
+		// Otherwise, pop an item off the end of the history...
 		//
 		// NOTE: This cannot panic, as we just verified that `!self.committed.is_empty()`.
-		let last_committed_operation = self
+		let last_committed_item = self
 			.committed
 			.pop_back()
 			.expect("committed list should not be empty");
 
 		// And add that item to the end of the undone list.
-		self.undone.push(last_committed_operation);
+		self.undone.push(last_committed_item);
 
 		// Finally, return a reference to the item we just moved between list.
 		//
-		// NOTE: We unfortunately can't just return `&last_committed_operation`, as Rust seems to
-		// yell at us if we try.
+		// NOTE: We unfortunately can't just return `&last_committed_item`, as Rust seems to yell at
+		// us if we try.
 		//
 		// NOTE: This cannot panic, as we've just pushed an item to `self.undone`.
 		let item_ref = self.undone.last().expect("undone list should not be empty");
@@ -238,10 +254,13 @@ impl<T> Default for History<T> {
 	}
 }
 
+/// The error type for history-type operations.
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum Error {
+	/// There is no applicable history is available for this operation.
 	NoApplicableHistory,
+	/// There is no operation available to apply.
 	NoWorkAvailable,
 }
 
