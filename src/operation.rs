@@ -1,13 +1,14 @@
 //! Types and traits for implementing and handling [`Operation`]s.
 
-use bevy_ecs::system::Commands;
+use bevy_ecs::{
+	system::Commands,
+	world::{Command, CommandQueue, World},
+};
 
 /// An action or sequence of commands which can later be undone.
 ///
 /// This can be thought of as an "undoable [`Command`]". In fact, in many cases, an `Operation` will
 /// itself also implement `Command`.
-///
-/// [`Command`]: bevy_ecs::world::Command
 pub trait Operation: Send + Sync + 'static {
 	/// Returns a list of details related to this operation.
 	fn details(&self) -> Details;
@@ -50,6 +51,17 @@ impl Set {
 	/// pushed, and undone in reverse order.
 	pub fn push<O: Operation>(&mut self, operation: O) {
 		self.op_list.push(Box::new(operation));
+	}
+}
+
+impl Command for Set {
+	fn apply(self, world: &mut World) {
+		let mut command_queue = CommandQueue::default();
+		let mut commands = Commands::new(&mut command_queue, world);
+
+		Operation::apply(&self, &mut commands);
+
+		command_queue.apply(world);
 	}
 }
 
