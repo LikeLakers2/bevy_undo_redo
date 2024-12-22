@@ -41,32 +41,6 @@ impl<T> History<T> {
 		self.undone.clear();
 	}
 
-	/// Truncates `self.committed` such that it only contains `self.limit` items.
-	///
-	/// This also takes a parameter `plus`, which causes the truncation to act as if
-	/// `self.committed` had `plus` more items. This is useful if you're about to push an item, as
-	/// it ensures we'll never have more than `self.limit` items in `self.committed`.
-	fn truncate_committed_to_limit_plus(&mut self, plus: usize) {
-		if let Some(limit) = self.limit {
-			// Transform this from a `NonZero<usize>` to a `usize`.
-			let limit = limit.get();
-
-			// Calculate how many items we'd have after the upcoming push, if we weren't limited.
-			let len_after_push = self.committed.len() + plus;
-
-			// Then, calculate how many items to remove, saturating at 0.
-			let count_to_remove = len_after_push.saturating_sub(limit);
-
-			// Then, drain that many items out of the beginning of the committed list.
-			//
-			// Technically speaking, draining creates an iterator that moves items off the list,
-			// rather than directly removing items. However, dropping that iterator gives those
-			// drained items nowhere to go - and so they too will be dropped. In essence, this is
-			// like a theoretical `truncate_front()` function on `VecDeque`.
-			self.committed.drain(0..count_to_remove);
-		}
-	}
-
 	/// Pushes an item to the history. This also clears the undone list.
 	///
 	/// If a history limit is set, any items past the limit will be removed, plus one more to make
@@ -149,6 +123,36 @@ impl<T> History<T> {
 		let item_ref = self.undone.last().expect("undone list should not be empty");
 
 		Ok(item_ref)
+	}
+}
+
+/// Private items. This helps keep the secondary side bar in vscode cleaner, by separating this
+/// module into public and private items.
+impl<T> History<T> {
+	/// Truncates `self.committed` such that it only contains `self.limit` items.
+	///
+	/// This also takes a parameter `plus`, which causes the truncation to act as if
+	/// `self.committed` had `plus` more items. This is useful if you're about to push an item, as
+	/// it ensures we'll never have more than `self.limit` items in `self.committed`.
+	fn truncate_committed_to_limit_plus(&mut self, plus: usize) {
+		if let Some(limit) = self.limit {
+			// Transform this from a `NonZero<usize>` to a `usize`.
+			let limit = limit.get();
+
+			// Calculate how many items we'd have after the upcoming push, if we weren't limited.
+			let len_after_push = self.committed.len() + plus;
+
+			// Then, calculate how many items to remove, saturating at 0.
+			let count_to_remove = len_after_push.saturating_sub(limit);
+
+			// Then, drain that many items out of the beginning of the committed list.
+			//
+			// Technically speaking, draining creates an iterator that moves items off the list,
+			// rather than directly removing items. However, dropping that iterator gives those
+			// drained items nowhere to go - and so they too will be dropped. In essence, this is
+			// like a theoretical `truncate_front()` function on `VecDeque`.
+			self.committed.drain(0..count_to_remove);
+		}
 	}
 }
 
