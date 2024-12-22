@@ -11,6 +11,7 @@ use crate::error::Error;
 /// Unlike [`UndoRedo`], this struct does not affect a [`World`] when items are pushed to it. It
 /// only acts as a pointer into a set of items.
 ///
+/// [`UndoRedo`]: crate::undoredo::UndoRedo
 /// [`World`]: bevy_ecs::world::World
 pub struct History<T> {
 	/// A list of all items that have been committed, in the order they were committed. The
