@@ -16,6 +16,17 @@ pub struct UndoRedo {
 }
 
 impl UndoRedo {
+	/// Clears all stored operations, including those that are still queued.
+	pub fn clear(&mut self) {
+		self.history.clear();
+		self.queued_operations.clear();
+	}
+
+	// Clears the list of queued operations.
+	pub fn clear_queued_operations(&mut self) {
+		self.queued_operations.clear();
+	}
+
 	/// Pushes an operation into the list of queued operations.
 	///
 	/// After pushing one or more operations, call [`Self::apply_queued_operations()`] to apply the
