@@ -49,4 +49,4 @@ pub mod history;
 pub mod operation;
 pub(crate) mod undoredo;
 
-pub use crate::{error::*, history::*, operation::Operation, undoredo::*};
+pub use crate::{error::*, history::History, operation::Operation, undoredo::*};

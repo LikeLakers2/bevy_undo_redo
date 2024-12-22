@@ -4,7 +4,7 @@ use bevy_ecs::system::{Commands, Resource};
 
 use crate::{error::Error, history::History, operation::Operation};
 
-/// A high-level interface for implementing undo/redo operations.
+/// A high-level interface for implementing undo/redo functionality.
 #[derive(Default, Resource)]
 pub struct UndoRedo {
 	/// The collection which manages the list of committed operations, and acts as a pointer into
