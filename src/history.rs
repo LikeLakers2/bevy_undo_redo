@@ -15,19 +15,31 @@ pub struct History<T> {
 	/// A list of all items that have been committed, in the order they were committed. The
 	/// front-most item is the oldest committed item, and the back-most item is the newest committed
 	/// item.
-	pub(crate) committed: VecDeque<T>,
+	committed: VecDeque<T>,
 	/// A list of all items that were committed, but have subsequently been undone. Items at the end
 	/// of the list are the most recently undone.
 	// NOTE: Because we only care about items at one end of this list, we use a Vec rather than a
 	// VecDeque, to gain a small amount of free performance.
-	pub(crate) undone: Vec<T>,
+	undone: Vec<T>,
 	/// The maximum length of this history. Any committed items past this limit will be
 	/// automatically culled the next time an item is pushed.
 	pub limit: Option<NonZeroUsize>,
 }
 
 impl<T> History<T> {
-	/// Pushes an item to the history.
+	/// Clears the history of all items.
+	pub fn clear(&mut self) {
+		self.committed.clear();
+		self.undone.clear();
+	}
+	
+	/// Clears the history of all undone items. This prevents [`History::redo()`] from re-applying
+	/// any such items.
+	pub fn clear_undone(&mut self) {
+		self.undone.clear();
+	}
+	
+	/// Pushes an item to the history. This also clears the undone list.
 	///
 	/// If a history limit is set, any items past the limit will be removed, plus one more to make
 	/// space for the item being pushed.
@@ -42,6 +54,7 @@ impl<T> History<T> {
 		}
 
 		self.committed.push_back(item);
+		self.clear_undone();
 	}
 
 	/// Marks the last undone item as "committed", and returns a reference to it.

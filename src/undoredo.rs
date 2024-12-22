@@ -44,7 +44,6 @@ impl UndoRedo {
 			self.history.push(operation);
 		}
 
-		self.history.undone.clear();
 		Ok(())
 	}
 
