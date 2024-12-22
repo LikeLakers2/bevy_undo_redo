@@ -6,6 +6,8 @@ use bevy_ecs::system::Commands;
 ///
 /// This can be thought of as an "undoable [`Command`]". In fact, in many cases, an `Operation` will
 /// itself also implement `Command`.
+///
+/// [`Command`]: bevy_ecs::world::Command
 pub trait Operation: Send + Sync + 'static {
 	/// Returns a list of details related to this operation.
 	fn details(&self) -> Details;

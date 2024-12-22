@@ -8,14 +8,14 @@ use crate::operation::{Details, Operation};
 
 /// A collection of [`Operation`]s, used to group them together and treat them as one operation.
 pub struct OperationGroup {
-	/// A descriptor for this set of Operations.
+	/// A descriptor for this group of Operations.
 	details: Details,
-	/// The set of operations that this [`OperationSet`] groups together.
+	/// The set of operations that this groups together.
 	op_list: Vec<Box<dyn Operation>>,
 }
 
 impl OperationGroup {
-	/// Creates a new [`Set`].
+	/// Creates a new [`OperationGroup`].
 	#[must_use]
 	pub fn new(details: Details) -> Self {
 		Self {
@@ -24,7 +24,7 @@ impl OperationGroup {
 		}
 	}
 
-	/// Pushes an operation into this [`Set`]. Operations will be applied in the order they were
+	/// Pushes an operation into this group. Operations will be applied in the order they were
 	/// pushed, and undone in reverse order.
 	pub fn push<O: Operation>(&mut self, operation: O) {
 		self.op_list.push(Box::new(operation));
