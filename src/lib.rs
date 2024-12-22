@@ -258,7 +258,7 @@ impl<T> Default for History<T> {
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum Error {
-	/// There is no applicable history is available for this operation.
+	/// There is no applicable history available for this operation.
 	NoApplicableHistory,
 	/// There is no operation available to apply.
 	NoWorkAvailable,
