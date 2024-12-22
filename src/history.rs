@@ -29,6 +29,18 @@ pub struct History<T> {
 }
 
 impl<T> History<T> {
+	/// Creates a new `History`.
+	#[must_use = "History does not store anything on its own - you must push items for it to store."]
+	pub const fn new() -> Self {
+		Self {
+			committed: VecDeque::new(),
+			undone: Vec::new(),
+			limit: None,
+		}
+	}
+}
+
+impl<T> History<T> {
 	/// Clears the history of all items.
 	pub fn clear(&mut self) {
 		self.committed.clear();
@@ -159,11 +171,7 @@ impl<T> History<T> {
 // Manually impl Default, to avoid putting a bound on T.
 impl<T> Default for History<T> {
 	fn default() -> Self {
-		Self {
-			committed: VecDeque::new(),
-			undone: Vec::new(),
-			limit: None,
-		}
+		Self::new()
 	}
 }
 
