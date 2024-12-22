@@ -73,7 +73,7 @@ impl<T> History<T> {
 		clippy::missing_panics_doc,
 		reason = "This function cannot panic under normal circumstances, as the conditions which would cause panics are handled beforehand, returning `Err` instead."
 	)]
-	pub fn redo(&mut self) -> Result<&T, Error> {
+	pub fn redo(&mut self) -> Result<&mut T, Error> {
 		// If there are no items in the history, we have no work to do. Let the caller know.
 		if self.undone.is_empty() {
 			return Err(Error::NoApplicableHistory);
@@ -95,7 +95,7 @@ impl<T> History<T> {
 		// NOTE: This cannot panic, as we've just pushed an item to `self.committed`.
 		let item_ref = self
 			.committed
-			.back()
+			.back_mut()
 			.expect("committed list should not be empty");
 
 		Ok(item_ref)
@@ -109,7 +109,7 @@ impl<T> History<T> {
 		clippy::missing_panics_doc,
 		reason = "This function cannot panic under normal circumstances, as the conditions which would cause panics are handled beforehand, returning `Err` instead."
 	)]
-	pub fn undo(&mut self) -> Result<&T, Error> {
+	pub fn undo(&mut self) -> Result<&mut T, Error> {
 		// If there are no items in the history, we have no work to do. Let the caller know.
 		if self.committed.is_empty() {
 			return Err(Error::NoApplicableHistory);
@@ -132,7 +132,7 @@ impl<T> History<T> {
 		// us if we try.
 		//
 		// NOTE: This cannot panic, as we've just pushed an item to `self.undone`.
-		let item_ref = self.undone.last().expect("undone list should not be empty");
+		let item_ref = self.undone.last_mut().expect("undone list should not be empty");
 
 		Ok(item_ref)
 	}

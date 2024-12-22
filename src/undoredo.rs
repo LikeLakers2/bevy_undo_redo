@@ -51,7 +51,7 @@ impl UndoRedo {
 
 		let queued_operations = self.queued_operations.drain(..);
 
-		for operation in queued_operations {
+		for mut operation in queued_operations {
 			operation.apply(commands);
 			self.history.push(operation);
 		}

@@ -14,9 +14,9 @@ pub trait Operation: Send + Sync + 'static {
 	fn details(&self) -> Details;
 
 	/// Queues up the commands needed to apply this operation to the World.
-	fn apply(&self, commands: &mut Commands);
+	fn apply(&mut self, commands: &mut Commands);
 	/// Queues up the commands needed to undo this operation.
-	fn undo(&self, commands: &mut Commands);
+	fn undo(&mut self, commands: &mut Commands);
 }
 
 /// Data representing information about a operation or set of operations.
@@ -56,11 +56,11 @@ impl Set {
 }
 
 impl Command for Set {
-	fn apply(self, world: &mut World) {
+	fn apply(mut self, world: &mut World) {
 		let mut command_queue = CommandQueue::default();
 		let mut commands = Commands::new(&mut command_queue, world);
 
-		Operation::apply(&self, &mut commands);
+		Operation::apply(&mut self, &mut commands);
 
 		command_queue.apply(world);
 	}
@@ -71,14 +71,14 @@ impl Operation for Set {
 		self.details.clone()
 	}
 
-	fn apply(&self, commands: &mut Commands) {
-		for op in &self.op_list {
+	fn apply(&mut self, commands: &mut Commands) {
+		for op in &mut self.op_list {
 			op.apply(commands);
 		}
 	}
 
-	fn undo(&self, commands: &mut Commands) {
-		let reversed_op_list = self.op_list.iter().rev();
+	fn undo(&mut self, commands: &mut Commands) {
+		let reversed_op_list = self.op_list.iter_mut().rev();
 		for op in reversed_op_list {
 			op.undo(commands);
 		}
