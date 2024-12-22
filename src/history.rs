@@ -63,7 +63,7 @@ impl<T> History<T> {
 		self.clear_undone();
 	}
 
-	/// Marks the last undone item as "committed", and returns a reference to it.
+	/// Marks the last undone item as "committed", and returns a mutable reference to it.
 	///
 	/// # Errors
 	/// * [`Error::NoApplicableHistory`] - If there is no history available to redo. This usually
@@ -87,7 +87,7 @@ impl<T> History<T> {
 		// And add that item to the end of the committed list.
 		self.committed.push_back(last_undone_item);
 
-		// Finally, return a reference to the item we just moved between list.
+		// Finally, return a mutable reference to the item we just moved between lists.
 		//
 		// NOTE: We unfortunately can't just return `&last_undone_item`, as Rust seems to yell at us
 		// if we try.
@@ -101,7 +101,7 @@ impl<T> History<T> {
 		Ok(item_ref)
 	}
 
-	/// Marks the last committed item as "undone", and returns a reference to it.
+	/// Marks the last committed item as "undone", and returns a mutable reference to it.
 	///
 	/// # Errors
 	/// * [`Error::NoApplicableHistory`] - If there is no history available to undo.
@@ -126,7 +126,7 @@ impl<T> History<T> {
 		// And add that item to the end of the undone list.
 		self.undone.push(last_committed_item);
 
-		// Finally, return a reference to the item we just moved between list.
+		// Finally, return a mutable reference to the item we just moved between lists.
 		//
 		// NOTE: We unfortunately can't just return `&last_committed_item`, as Rust seems to yell at
 		// us if we try.

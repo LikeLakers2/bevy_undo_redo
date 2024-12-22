@@ -14,6 +14,9 @@ pub trait Operation: Send + Sync + 'static {
 	fn details(&self) -> Details;
 
 	/// Queues up the commands needed to apply this operation to the World.
+	///
+	/// Operations get a mutable reference to themselves. This allows Operations to store some data
+	/// (such as an `Entity`) which can later be used for undoing the operation.
 	fn apply(&mut self, commands: &mut Commands);
 	/// Queues up the commands needed to undo this operation.
 	fn undo(&self, commands: &mut Commands);
