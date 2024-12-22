@@ -30,6 +30,7 @@
 	dead_code,
 	clippy::doc_markdown,
 	clippy::empty_docs,
+	clippy::missing_const_for_fn,
 	missing_docs,
 	clippy::missing_docs_in_private_items,
 	clippy::missing_enforced_import_renames,
