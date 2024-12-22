@@ -30,11 +30,11 @@ impl UndoRedo {
 	/// subsequently redone, will be lost.
 	///
 	/// # Errors
-	/// * [`Error::NoWorkAvailable`] - There are no queued operations available to apply.
+	/// * [`Error::NoQueuedOperations`] - There are no queued operations available to apply.
 	pub fn apply_queued_operations(&mut self, commands: &mut Commands) -> Result<(), Error> {
 		// If there are no queued operations available, we have no work to do. Let the caller know.
 		if self.queued_operations.is_empty() {
-			return Err(Error::NoWorkAvailable);
+			return Err(Error::NoQueuedOperations);
 		}
 
 		let queued_operations = self.queued_operations.drain(..);

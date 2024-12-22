@@ -6,8 +6,8 @@ use core::fmt::{Display, Formatter, Result as FmtResult};
 pub enum Error {
 	/// There is no applicable history available for this operation.
 	NoApplicableHistory,
-	/// There is no operation available to apply.
-	NoWorkAvailable,
+	/// There is no queued operation available to apply.
+	NoQueuedOperations,
 }
 
 impl Display for Error {
@@ -16,7 +16,7 @@ impl Display for Error {
 			Self::NoApplicableHistory => {
 				"No applicable history available to perform this operation"
 			}
-			Self::NoWorkAvailable => "No operation available to apply",
+			Self::NoQueuedOperations => "No operation available to apply",
 		};
 
 		write!(f, "{msg}")
