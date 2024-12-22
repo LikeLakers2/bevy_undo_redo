@@ -1,9 +1,6 @@
 //! Types and traits for implementing and handling [`Operation`]s.
 
-use bevy_ecs::{
-	system::Commands,
-	world::{Command, CommandQueue, World},
-};
+use bevy_ecs::system::Commands;
 
 /// An action or sequence of commands which can later be undone.
 ///
@@ -31,59 +28,4 @@ pub struct Details {
 	/// The type of operation that this is; i.e. "Move object"
 	// TODO: Implement an interface to obtain this, rather than just exposing a public variable.
 	pub name: String,
-}
-
-/// A collection of operations, used to group operations together.
-pub struct Set {
-	/// A descriptor for this set of Operations.
-	details: Details,
-	/// The set of operations that this [`OperationSet`] groups together.
-	op_list: Vec<Box<dyn Operation>>,
-}
-
-impl Set {
-	/// Creates a new [`Set`].
-	#[must_use]
-	pub fn new(details: Details) -> Self {
-		Self {
-			details,
-			op_list: vec![],
-		}
-	}
-
-	/// Pushes an operation into this [`Set`]. Operations will be applied in the order they were
-	/// pushed, and undone in reverse order.
-	pub fn push<O: Operation>(&mut self, operation: O) {
-		self.op_list.push(Box::new(operation));
-	}
-}
-
-impl Command for Set {
-	fn apply(mut self, world: &mut World) {
-		let mut command_queue = CommandQueue::default();
-		let mut commands = Commands::new(&mut command_queue, world);
-
-		Operation::apply(&mut self, &mut commands);
-
-		command_queue.apply(world);
-	}
-}
-
-impl Operation for Set {
-	fn details(&self) -> Details {
-		self.details.clone()
-	}
-
-	fn apply(&mut self, commands: &mut Commands) {
-		for op in &mut self.op_list {
-			op.apply(commands);
-		}
-	}
-
-	fn undo(&self, commands: &mut Commands) {
-		let reversed_op_list = self.op_list.iter().rev();
-		for op in reversed_op_list {
-			op.undo(commands);
-		}
-	}
 }
