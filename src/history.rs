@@ -161,3 +161,34 @@ impl<T> Default for History<T> {
 		}
 	}
 }
+
+impl<T> Extend<T> for History<T> {
+	fn extend<I: IntoIterator<Item = T>>(&mut self, iter: I) {
+		match self.limit {
+			None => {
+				// In this case, we can just defer to VecDeque's Extend impl.
+				self.committed.extend(iter);
+				self.clear_undone();
+			}
+			Some(_limit) => {
+				// In this case, we need to account for the limit - and ideally, do so without ever
+				// having more than `limit` items in `self.committed`, even for a moment.
+				//
+				// TODO: Depending on how Rust optimizes this code, this could be made more
+				// efficient.
+				for item in iter {
+					self.push(item);
+				}
+			}
+		}
+	}
+}
+
+impl<T> FromIterator<T> for History<T> {
+	fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
+		Self {
+			committed: FromIterator::from_iter(iter),
+			..Default::default()
+		}
+	}
+}
