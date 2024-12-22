@@ -33,7 +33,7 @@ pub struct Details {
 /// A collection of operations, used to group operations together.
 pub struct Set {
 	/// A descriptor for this set of Operations.
-	name: String,
+	details: Details,
 	/// The set of operations that this [`OperationSet`] groups together.
 	op_list: Vec<Box<dyn Operation>>,
 }
@@ -41,9 +41,9 @@ pub struct Set {
 impl Set {
 	/// Creates a new [`Set`].
 	#[must_use]
-	pub fn new(name: String) -> Self {
+	pub fn new(details: Details) -> Self {
 		Self {
-			name,
+			details,
 			op_list: vec![],
 		}
 	}
@@ -68,9 +68,7 @@ impl Command for Set {
 
 impl Operation for Set {
 	fn details(&self) -> Details {
-		Details {
-			name: self.name.clone(),
-		}
+		self.details.clone()
 	}
 
 	fn apply(&self, commands: &mut Commands) {
