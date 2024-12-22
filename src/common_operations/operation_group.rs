@@ -1,5 +1,8 @@
 //! A collection of [`Operation`]s, used to group them together and treat them as one operation.
-use bevy_ecs::{system::Commands, world::{Command, CommandQueue, World}};
+use bevy_ecs::{
+	system::Commands,
+	world::{Command, CommandQueue, World},
+};
 
 use crate::operation::{Details, Operation};
 

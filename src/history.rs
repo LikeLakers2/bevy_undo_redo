@@ -132,7 +132,10 @@ impl<T> History<T> {
 		// us if we try.
 		//
 		// NOTE: This cannot panic, as we've just pushed an item to `self.undone`.
-		let item_ref = self.undone.last_mut().expect("undone list should not be empty");
+		let item_ref = self
+			.undone
+			.last_mut()
+			.expect("undone list should not be empty");
 
 		Ok(item_ref)
 	}
