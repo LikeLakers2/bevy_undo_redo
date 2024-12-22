@@ -1,3 +1,4 @@
+//! Types related to [`History`], a collection which represents the history of something.
 use core::num::NonZeroUsize;
 
 use std::collections::VecDeque;
@@ -39,18 +40,18 @@ impl<T> History<T> {
 		self.undone.clear();
 	}
 
-	/// Pushes an item to the history. This also clears the undone list.
+	/// Truncates `self.committed` such that it only contains `self.limit` items.
 	///
-	/// If a history limit is set, any items past the limit will be removed, plus one more to make
-	/// space for the item being pushed.
-	pub fn push(&mut self, item: T) {
-		// If we have a limit, we want to enforce it.
+	/// This also takes a parameter `plus`, which causes the truncation to act as if
+	/// `self.committed` had `plus` more items. This is useful if you're about to push an item, as
+	/// it ensures we'll never have more than `self.limit` items in `self.committed`.
+	fn truncate_committed_to_limit_plus(&mut self, plus: usize) {
 		if let Some(limit) = self.limit {
 			// Transform this from a `NonZero<usize>` to a `usize`.
 			let limit = limit.get();
 
 			// Calculate how many items we'd have after the upcoming push, if we weren't limited.
-			let len_after_push = self.committed.len() + 1;
+			let len_after_push = self.committed.len() + plus;
 
 			// Then, calculate how many items to remove, saturating at 0.
 			let count_to_remove = len_after_push.saturating_sub(limit);
@@ -63,7 +64,14 @@ impl<T> History<T> {
 			// like a theoretical `truncate_front()` function on `VecDeque`.
 			self.committed.drain(0..count_to_remove);
 		}
+	}
 
+	/// Pushes an item to the history. This also clears the undone list.
+	///
+	/// If a history limit is set, any items past the limit will be removed, plus one more to make
+	/// space for the item being pushed.
+	pub fn push(&mut self, item: T) {
+		self.truncate_committed_to_limit_plus(1);
 		self.committed.push_back(item);
 		self.clear_undone();
 	}

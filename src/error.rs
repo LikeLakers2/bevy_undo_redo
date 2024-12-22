@@ -1,3 +1,4 @@
+//! The error type for history-type operations.
 use core::fmt::{Display, Formatter, Result as FmtResult};
 
 /// The error type for history-type operations.

@@ -30,8 +30,8 @@
 	dead_code,
 	clippy::doc_markdown,
 	clippy::empty_docs,
-	//missing_docs,
-	//clippy::missing_docs_in_private_items,
+	missing_docs,
+	clippy::missing_docs_in_private_items,
 	clippy::missing_enforced_import_renames,
 	clippy::missing_errors_doc,
 	// `clippy::missing_panics_docs` is set to deny - see its lint attribute for why.

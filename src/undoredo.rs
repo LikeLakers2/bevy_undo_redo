@@ -1,3 +1,4 @@
+//! A high-level interface for implementing undo/redo functionality.
 use std::collections::VecDeque;
 
 use bevy_ecs::system::{Commands, Resource};
@@ -22,7 +23,7 @@ impl UndoRedo {
 		self.queued_operations.clear();
 	}
 
-	// Clears the list of queued operations.
+	/// Clears the list of queued operations.
 	pub fn clear_queued_operations(&mut self) {
 		self.queued_operations.clear();
 	}
