@@ -32,25 +32,36 @@ impl<T> History<T> {
 		self.committed.clear();
 		self.undone.clear();
 	}
-	
+
 	/// Clears the history of all undone items. This prevents [`History::redo()`] from re-applying
 	/// any such items.
 	pub fn clear_undone(&mut self) {
 		self.undone.clear();
 	}
-	
+
 	/// Pushes an item to the history. This also clears the undone list.
 	///
 	/// If a history limit is set, any items past the limit will be removed, plus one more to make
 	/// space for the item being pushed.
 	pub fn push(&mut self, item: T) {
+		// If we have a limit, we want to enforce it.
 		if let Some(limit) = self.limit {
-			// If we have more committed items than the limit, remove items from the committed
-			// list until we're at the limit. Then, remove one more to make space for the item we're
-			// about to push.
-			while limit.get() <= self.committed.len() {
-				self.committed.pop_front();
-			}
+			// Transform this from a `NonZero<usize>` to a `usize`.
+			let limit = limit.get();
+
+			// Calculate how many items we'd have after the upcoming push, if we weren't limited.
+			let len_after_push = self.committed.len() + 1;
+
+			// Then, calculate how many items to remove, saturating at 0.
+			let count_to_remove = len_after_push.saturating_sub(limit);
+
+			// Then, drain that many items out of the beginning of the committed list.
+			//
+			// Technically speaking, draining creates an iterator that moves items off the list,
+			// rather than directly removing items. However, dropping that iterator gives those
+			// drained items nowhere to go - and so they too will be dropped. In essence, this is
+			// like a theoretical `truncate_front()` function on `VecDeque`.
+			self.committed.drain(0..count_to_remove);
 		}
 
 		self.committed.push_back(item);
@@ -65,7 +76,7 @@ impl<T> History<T> {
 	///   pushed.
 	#[expect(
 		clippy::missing_panics_doc,
-		reason = "This function cannot panic under normal circumstances, as the conditions which would cause those panics are handled beforehand."
+		reason = "This function cannot panic under normal circumstances, as the conditions which would cause panics are handled beforehand, returning `Err` instead."
 	)]
 	pub fn redo(&mut self) -> Result<&T, Error> {
 		// If there are no items in the history, we have no work to do. Let the caller know.
@@ -101,7 +112,7 @@ impl<T> History<T> {
 	/// * [`Error::NoApplicableHistory`] - If there is no history available to undo.
 	#[expect(
 		clippy::missing_panics_doc,
-		reason = "This function cannot panic under normal circumstances, as the conditions which would cause those panics are handled beforehand."
+		reason = "This function cannot panic under normal circumstances, as the conditions which would cause panics are handled beforehand, returning `Err` instead."
 	)]
 	pub fn undo(&mut self) -> Result<&T, Error> {
 		// If there are no items in the history, we have no work to do. Let the caller know.
