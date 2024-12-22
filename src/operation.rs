@@ -22,7 +22,8 @@ pub trait Operation: Send + Sync + 'static {
 /// Data representing information about a operation or set of operations.
 ///
 /// This can be obtained through [`Operation::details()`].
-#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[non_exhaustive]
 pub struct Details {
 	/// The type of operation that this is; i.e. "Move object"
 	// TODO: Implement an interface to obtain this, rather than just exposing a public variable.
