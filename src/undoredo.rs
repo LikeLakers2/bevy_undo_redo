@@ -48,8 +48,8 @@ impl UndoRedo {
 	/// Pushes an operation into the list of queued operations. Queued operations are those that are
 	/// ready to be applied later.
 	///
-	/// After pushing one or more operations, call [`Self::apply_queued_operations()`] to apply the
-	/// operation(s) to the [`World`].
+	/// After pushing one or more operations, call [`Self::apply_queue()`] to apply the operation(s)
+	/// to the [`World`].
 	///
 	/// # See Also
 	/// * [`Self::push_and_apply()`] - Pushes an operation, skipping the queue such that it will be
