@@ -74,15 +74,12 @@ impl<T> History<T> {
 		reason = "This function cannot panic under normal circumstances, as the conditions which would cause panics are handled beforehand, returning `Err` instead."
 	)]
 	pub fn redo(&mut self) -> Result<&mut T, Error> {
-		// If there are no items in the history, we have no work to do. Let the caller know.
-		if self.undone.is_empty() {
+		// Attempt to pop an item off the end of the undone list. If we fail, then we have no undone
+		// items, and thus cannot perform the redo operation - in which case, we should return an
+		// error.
+		let Some(last_undone_item) = self.undone.pop() else {
 			return Err(Error::NoApplicableHistory);
-		}
-
-		// Otherwise, pop an item off the end of the undone list...
-		//
-		// NOTE: This cannot panic, as we just verified that `!self.undone.is_empty()`.
-		let last_undone_item = self.undone.pop().expect("undone list should not be empty");
+		};
 
 		// And add that item to the end of the committed list.
 		self.committed.push_back(last_undone_item);
@@ -110,18 +107,12 @@ impl<T> History<T> {
 		reason = "This function cannot panic under normal circumstances, as the conditions which would cause panics are handled beforehand, returning `Err` instead."
 	)]
 	pub fn undo(&mut self) -> Result<&mut T, Error> {
-		// If there are no items in the history, we have no work to do. Let the caller know.
-		if self.committed.is_empty() {
+		// Attempt to pop an item off the end of the history. If we fail, then we have no committed
+		// items, and thus cannot perform the undo operation - in which case, we should return an
+		// error.
+		let Some(last_committed_item) = self.committed.pop_back() else {
 			return Err(Error::NoApplicableHistory);
-		}
-
-		// Otherwise, pop an item off the end of the history...
-		//
-		// NOTE: This cannot panic, as we just verified that `!self.committed.is_empty()`.
-		let last_committed_item = self
-			.committed
-			.pop_back()
-			.expect("committed list should not be empty");
+		};
 
 		// And add that item to the end of the undone list.
 		self.undone.push(last_committed_item);
