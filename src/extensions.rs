@@ -33,7 +33,7 @@ impl CommandsUndoRedoExt for Commands<'_, '_> {
 			world.resource_scope(|world, mut undoredo: Mut<UndoRedo>| {
 				let mut commands = world.commands();
 				// We intentionally ignore the result.
-				// Though perhaps in the future we could have it write an event if it failed?
+				// Though perhaps in the future we could write an event with the result?
 				let _ = undoredo.undo(&mut commands);
 			});
 		});
@@ -44,7 +44,7 @@ impl CommandsUndoRedoExt for Commands<'_, '_> {
 			world.resource_scope(|world, mut undoredo: Mut<UndoRedo>| {
 				let mut commands = world.commands();
 				// We intentionally ignore the result.
-				// Though perhaps in the future we could have it write an event if it failed?
+				// Though perhaps in the future we could write an event with the result?
 				let _ = undoredo.redo(&mut commands);
 			});
 		});
