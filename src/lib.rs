@@ -2,6 +2,7 @@
 
 pub mod common_operations;
 pub(crate) mod error;
+pub mod extensions;
 pub mod history;
 pub mod operation;
 pub(crate) mod undoredo;
