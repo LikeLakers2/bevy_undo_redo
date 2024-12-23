@@ -5,6 +5,6 @@ pub(crate) mod error;
 pub mod extensions;
 pub mod history;
 pub mod operation;
-pub(crate) mod undoredo;
+pub mod undoredo;
 
-pub use crate::{error::*, history::History, operation::Operation, undoredo::*};
+pub use crate::{error::Error, history::History, operation::Operation, undoredo::UndoRedo};
