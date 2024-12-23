@@ -6,6 +6,11 @@ use bevy_ecs::system::{Commands, Resource};
 use crate::{error::Error, history::History, operation::Operation};
 
 /// A high-level interface for implementing undo/redo functionality.
+///
+/// If you've inserted an `UndoRedo` as a `Resource` into a world, consider using
+/// [`CommandsUndoRedoExt`] to interact with it, instead of system parameters.
+///
+/// [`CommandsUndoRedoExt`]: crate::extensions::CommandsUndoRedoExt
 #[derive(Default, Resource)]
 pub struct UndoRedo {
 	/// The collection which manages the list of committed operations, and acts as a pointer into
@@ -64,6 +69,12 @@ impl UndoRedo {
 	/// # Errors
 	/// * [`Error::NoApplicableHistory`] - No operations have been undone since the last time (if any)
 	///   queued operations were applied.
+	///
+	/// # See Also
+	/// * [`CommandsUndoRedoExt::redo()`] - Queues up a call to this method on the world's
+	///   `UndoRedo` resource.
+	///
+	/// [`CommandsUndoRedoExt::redo()`]: crate::extensions::CommandsUndoRedoExt::redo()
 	pub fn redo(&mut self, commands: &mut Commands) -> Result<(), Error> {
 		let item = self.history.redo()?;
 
@@ -77,6 +88,12 @@ impl UndoRedo {
 	///
 	/// # Errors
 	/// * [`Error::NoApplicableHistory`] - There are no operations available to undo.
+	///
+	/// # See Also
+	/// * [`CommandsUndoRedoExt::redo()`] - Queues up a call to this method on the world's
+	///   `UndoRedo` resource.
+	///
+	/// [`CommandsUndoRedoExt::redo()`]: crate::extensions::CommandsUndoRedoExt::redo()
 	pub fn undo(&mut self, commands: &mut Commands) -> Result<(), Error> {
 		let item = self.history.undo()?;
 
