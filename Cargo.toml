@@ -19,3 +19,29 @@ categories = ["data-structures", "game-engines"]
 	
 	[dependencies.bevy_reflect]
 	version = "0.15"
+
+[lints]
+rust.dead_code = "forbid"
+rust.missing_docs = "forbid"
+clippy.allow_attributes = "forbid"
+clippy.allow_attributes_without_reason = "forbid"
+clippy.cargo_common_metadata = "forbid"
+clippy.doc_markdown = "forbid"
+clippy.empty_docs = "forbid"
+clippy.missing_const_for_fn = "forbid"
+clippy.missing_docs_in_private_items = "forbid"
+clippy.missing_enforced_import_renames = "forbid"
+clippy.missing_errors_docs = "forbid"
+# `clippy::missing_panics_docs` is considered a forbidden lint. However, it has some false positives
+# which trigger the lint unnecessarily. For an example, see `History::push()`'s code.
+#
+# All exceptions for `clippy::missing_panics_docs` must be marked as `#[expect()]`, and a reason
+# must be given.
+clippy.missing_panics_docs = "deny"
+clippy.missing_safety_doc = "forbid"
+clippy.module_name_repetitions = "forbid"
+clippy.multiple_crate_versions = "forbid"
+clippy.must_use_candidate = "forbid"
+clippy.semicolon_if_nothing_returned = "forbid"
+clippy.semicolon_inside_block = "forbid"
+clippy.std_instead_of_core = "forbid"
