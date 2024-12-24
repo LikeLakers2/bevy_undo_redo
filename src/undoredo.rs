@@ -23,6 +23,11 @@ use crate::{error::Error, history::History, operation::Operation};
 ///   time an operation is marked as **Committed**.
 ///
 /// [`CommandsUndoRedoExt`]: crate::extensions::CommandsUndoRedoExt
+// TODO List:
+// * `impl Extend<Box<dyn Operation>> for UndoRedo`
+// * `impl FromIterator<Box<dyn Operation>> for UndoRedo`
+// * `impl IntoIterator for UndoRedo`
+//   * Plus `iter()`, `iter_committed()`, `iter_undone()`, `iter_queued()`
 #[derive(Default, Resource)]
 pub struct UndoRedo {
 	/// The collection which manages the list of applied and undone operations, and acts as a
@@ -77,6 +82,7 @@ impl UndoRedo {
 
 		let queued_operations = self.queued_operations.drain(..);
 
+		// NOTE: Could this be replaced with something calling `History`'s `Extend` impl?
 		for mut operation in queued_operations {
 			operation.apply(commands);
 			self.history.push(operation);
