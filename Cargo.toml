@@ -32,18 +32,12 @@ clippy.missing_const_for_fn = "forbid"
 clippy.missing_docs_in_private_items = "forbid"
 clippy.missing_enforced_import_renames = "forbid"
 clippy.missing_errors_docs = "forbid"
-# `clippy::missing_panics_docs` is considered a forbidden lint. However, it has some false positives
-# which trigger the lint unnecessarily. For an example, see `History::push()`'s code.
-#
-# All exceptions for `clippy::missing_panics_docs` must be marked as `#[expect()]`, and a reason
-# must be given.
+# `clippy::missing_panics_docs` has some false positives which trigger the lint unnecessarily. For
+# an example, see `History::push()`'s code.
 clippy.missing_panics_docs = "deny"
 clippy.missing_safety_doc = "forbid"
-# `clippy::module_name_repetitions` is considered a forbidden lint. However, it's unwanted for the
-# purposes of iterators, which are usually in `iter.rs` but may contain more than one iterator.
-#
-# All exceptions for `clippy::module_name_repetitions` must be marked as `#[expect()]`, and a reason
-# must be given.
+# `clippy::module_name_repetitions` triggers for some iterators, despite the repetition in their
+# name being desirable for the purposes of accuracy.
 clippy.module_name_repetitions = "deny"
 clippy.multiple_crate_versions = "forbid"
 clippy.must_use_candidate = "forbid"
