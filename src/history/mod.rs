@@ -7,7 +7,7 @@ use std::collections::VecDeque;
 
 use crate::error::Error;
 
-pub use self::iter::*;
+pub use self::iter::{CommittedIter, Iter, UndoneIter};
 
 /// A collection which holds a set of items that represents the history of something, and acts as a
 /// cursor into that set of items.
@@ -138,6 +138,26 @@ impl<T> History<T> {
 			.expect("undone list should not be empty");
 
 		Ok(item_ref)
+	}
+}
+
+/// Iterator items.
+impl<T> History<T> {
+	/// Returns an iterator over this history, including both committed items and undone items.
+	#[must_use]
+	pub fn iter(&self) -> Iter<'_, T> {
+		Iter::new(self.iter_committed(), self.iter_undone())
+	}
+
+	/// Returns an iterator over committed items that haven't been erased due to the history limit.
+	#[must_use]
+	pub fn iter_committed(&self) -> CommittedIter<'_, T> {
+		self.committed.iter()
+	}
+
+	/// Returns an iterator over undone items, if any exist.
+	pub fn iter_undone(&self) -> UndoneIter<'_, T> {
+		self.undone.iter().rev()
 	}
 }
 
