@@ -39,7 +39,12 @@ clippy.missing_errors_docs = "forbid"
 # must be given.
 clippy.missing_panics_docs = "deny"
 clippy.missing_safety_doc = "forbid"
-clippy.module_name_repetitions = "forbid"
+# `clippy::module_name_repetitions` is considered a forbidden lint. However, it's unwanted for the
+# purposes of iterators, which are usually in `iter.rs` but may contain more than one iterator.
+#
+# All exceptions for `clippy::module_name_repetitions` must be marked as `#[expect()]`, and a reason
+# must be given.
+clippy.module_name_repetitions = "deny"
 clippy.multiple_crate_versions = "forbid"
 clippy.must_use_candidate = "forbid"
 clippy.semicolon_if_nothing_returned = "forbid"

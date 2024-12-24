@@ -1,9 +1,13 @@
 //! Types related to [`History`], a collection which represents the history of something.
+mod iter;
+
 use core::num::NonZeroUsize;
 
 use std::collections::VecDeque;
 
 use crate::error::Error;
+
+pub use self::iter::*;
 
 /// A collection which holds a set of items that represents the history of something, and acts as a
 /// cursor into that set of items.
