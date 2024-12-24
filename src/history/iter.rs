@@ -28,6 +28,7 @@ impl<'a, T> Iter<'a, T> {
 /// The type of iterator for committed items.
 ///
 /// Items are returned in order from least-recently committed to most-recently committed.
+// TODO: Replace this with an actual iterator, so we don't expose the internal type.
 #[expect(
 	clippy::module_name_repetitions,
 	reason = "This is an iterator over committed items only."
@@ -37,6 +38,7 @@ pub type CommittedIter<'a, T> = VecDequeIter<'a, T>;
 /// The type of iterator for undone items.
 ///
 /// Items are returned in order from most-recently undone to least-recently undone.
+// TODO: Replace this with an actual iterator, so we don't expose the internal type.
 #[expect(
 	clippy::module_name_repetitions,
 	reason = "This is an iterator over undone items only."
