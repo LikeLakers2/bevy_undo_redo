@@ -152,12 +152,13 @@ impl<T> History<T> {
 	/// Returns an iterator over committed items that haven't been erased due to the history limit.
 	#[must_use]
 	pub fn iter_committed(&self) -> CommittedIter<'_, T> {
-		self.committed.iter()
+		CommittedIter::new(self.committed.iter())
 	}
 
 	/// Returns an iterator over undone items, if any exist.
+	#[must_use]
 	pub fn iter_undone(&self) -> UndoneIter<'_, T> {
-		self.undone.iter().rev()
+		UndoneIter::new(self.undone.iter())
 	}
 }
 
