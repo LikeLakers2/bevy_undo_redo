@@ -9,16 +9,9 @@ keywords = ["bevy", "undo", "redo"]
 categories = ["data-structures", "game-engines"]
 
 [dependencies]
-	[dependencies.bevy_app]
-	version = "0.15"
-	default-features = false
-	
-	[dependencies.bevy_ecs]
-	version = "0.15"
-	default-features = false
-	
-	[dependencies.bevy_reflect]
-	version = "0.15"
+bevy_app = { version = "0.15", default-features = false }
+bevy_ecs = { version = "0.15", default-features = false }
+bevy_reflect = { version = "0.15" }
 
 [lints]
 rust.dead_code = "forbid"
