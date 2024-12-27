@@ -158,7 +158,6 @@ mod tests {
 	// * CommittedIter: `Iterator::size_hint`
 	// * UndoneIter: `Iterator::size_hint`
 
-	// ITER
 	mod iter {
 		use super::*;
 
