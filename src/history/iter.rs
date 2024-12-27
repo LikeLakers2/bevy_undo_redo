@@ -135,4 +135,3 @@ impl<'a, T> Iterator for UndoneIter<'a, T> {
 	}
 }
 
-impl<T> FusedIterator for Iter<'_, T> {}
