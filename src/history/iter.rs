@@ -39,7 +39,7 @@ impl<'a, T> Iterator for Iter<'a, T> {
 	fn next(&mut self) -> Option<Self::Item> {
 		self.0.next()
 	}
-	
+
 	fn size_hint(&self) -> (usize, Option<usize>) {
 		self.0.size_hint()
 	}
@@ -57,9 +57,7 @@ pub struct CommittedIter<'a, T>(VecDequeIter<'a, T>);
 
 impl<'a, T> CommittedIter<'a, T> {
 	/// Returns an instance of `Self`, given iterator over undone items.
-	pub(super) const fn new(
-		committed_iter: VecDequeIter<'a, T>,
-	) -> Self {
+	pub(super) const fn new(committed_iter: VecDequeIter<'a, T>) -> Self {
 		Self(committed_iter)
 	}
 }
@@ -84,7 +82,7 @@ impl<'a, T> Iterator for CommittedIter<'a, T> {
 	fn next(&mut self) -> Option<Self::Item> {
 		self.0.next()
 	}
-	
+
 	fn size_hint(&self) -> (usize, Option<usize>) {
 		self.0.size_hint()
 	}
@@ -102,9 +100,7 @@ pub struct UndoneIter<'a, T>(Rev<SliceIter<'a, T>>);
 
 impl<'a, T> UndoneIter<'a, T> {
 	/// Returns an instance of `Self`, given iterator over undone items.
-	pub(super) fn new(
-		undone_iter: SliceIter<'a, T>,
-	) -> Self {
+	pub(super) fn new(undone_iter: SliceIter<'a, T>) -> Self {
 		Self(undone_iter.rev())
 	}
 }
@@ -129,9 +125,122 @@ impl<'a, T> Iterator for UndoneIter<'a, T> {
 	fn next(&mut self) -> Option<Self::Item> {
 		self.0.next()
 	}
-	
+
 	fn size_hint(&self) -> (usize, Option<usize>) {
 		self.0.size_hint()
 	}
 }
 
+#[cfg(test)]
+mod tests {
+	use crate::history::History;
+	use core::ops::Range;
+	use rstest::{fixture, rstest};
+
+	const VALUE_RANGE: Range<u32> = 0..10;
+	const COMMITTED_RANGE: Range<u32> = 0..7;
+	const UNDONE_RANGE: Range<u32> = 7..10;
+
+	#[fixture]
+	fn sample_history() -> History<u32> {
+		let mut history = History::new();
+		for i in VALUE_RANGE {
+			history.push(i);
+		}
+		for _ in UNDONE_RANGE {
+			let _ = history.undo();
+		}
+		history
+	}
+
+	// TODO:
+	// * Iter: `Iterator::size_hint`
+	// * CommittedIter: `Iterator::size_hint`
+	// * UndoneIter: `Iterator::size_hint`
+
+	// ITER
+	mod iter {
+		use super::*;
+
+		#[rstest]
+		fn next(sample_history: History<u32>) {
+			let mut iter = sample_history.iter();
+
+			for i in VALUE_RANGE {
+				assert_eq!(iter.next(), Some(&i));
+			}
+			assert_eq!(iter.next(), None);
+		}
+
+		#[rstest]
+		fn next_back(sample_history: History<u32>) {
+			let mut iter = sample_history.iter();
+
+			for i in VALUE_RANGE.rev() {
+				assert_eq!(iter.next_back(), Some(&i));
+			}
+			assert_eq!(iter.next_back(), None);
+		}
+	}
+
+	mod committed_iter {
+		use super::*;
+
+		#[rstest]
+		fn next(sample_history: History<u32>) {
+			let mut iter = sample_history.iter_committed();
+
+			for i in COMMITTED_RANGE {
+				assert_eq!(iter.next(), Some(&i));
+			}
+			assert_eq!(iter.next(), None);
+		}
+
+		#[rstest]
+		fn next_back(sample_history: History<u32>) {
+			let mut iter = sample_history.iter_committed();
+
+			for i in COMMITTED_RANGE.rev() {
+				assert_eq!(iter.next_back(), Some(&i));
+			}
+			assert_eq!(iter.next_back(), None);
+		}
+
+		#[rstest]
+		fn len(sample_history: History<u32>) {
+			let iter = sample_history.iter_committed();
+			assert_eq!(iter.len(), COMMITTED_RANGE.len());
+		}
+	}
+
+	mod undone_iter {
+		use super::*;
+
+		#[rstest]
+		fn next(sample_history: History<u32>) {
+			let mut iter = sample_history.iter_undone();
+
+			for i in UNDONE_RANGE {
+				assert_eq!(iter.next(), Some(&i));
+			}
+			assert_eq!(iter.next(), None);
+		}
+
+		#[rstest]
+		fn next_back(sample_history: History<u32>) {
+			let mut iter = sample_history.iter_undone();
+
+			for i in UNDONE_RANGE.rev() {
+				assert_eq!(iter.next_back(), Some(&i));
+			}
+
+			assert_eq!(iter.next_back(), None);
+		}
+
+		#[rstest]
+		fn len(sample_history: History<u32>) {
+			let iter = sample_history.iter_undone();
+			assert_eq!(iter.len(), UNDONE_RANGE.len());
+		}
+	}
+}

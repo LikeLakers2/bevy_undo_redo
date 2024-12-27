@@ -13,8 +13,11 @@ bevy_app = { version = "0.15", default-features = false }
 bevy_ecs = { version = "0.15", default-features = false }
 bevy_reflect = { version = "0.15" }
 
+[dev-dependencies]
+rstest = "0.23"
+
 [lints]
-rust.dead_code = "forbid"
+rust.dead_code = "warn"
 rust.missing_docs = "forbid"
 clippy.allow_attributes = "forbid"
 clippy.allow_attributes_without_reason = "forbid"
