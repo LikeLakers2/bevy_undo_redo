@@ -159,25 +159,29 @@ mod tests {
 	// * CommittedIter: `Iterator::size_hint`
 	// * UndoneIter: `Iterator::size_hint`
 
-	#[rstest]
-	#[case::iter(History::iter, VALUE_RANGE)]
-	#[case::committed_iter(History::iter_committed, COMMITTED_RANGE)]
-	#[case::undone_iter(History::iter_undone, UNDONE_RANGE)]
-	fn check_iterator_next<'a, F, I>(
-		sample_history: &'a History<u32>,
-		#[case] iter_func: F,
-		#[case] applicable_range: Range<u32>,
-	) where
-		F: Fn(&'a History<u32>) -> I,
-		I: Iterator<Item = &'a u32>,
-	{
-		let mut iter = iter_func(sample_history);
+	mod check_iterator {
+		use super::*;
 
-		for i in applicable_range {
-			assert_eq!(iter.next(), Some(&i));
+		#[rstest]
+		#[case::iter(History::iter, VALUE_RANGE)]
+		#[case::committed_iter(History::iter_committed, COMMITTED_RANGE)]
+		#[case::undone_iter(History::iter_undone, UNDONE_RANGE)]
+		fn next<'a, F, I>(
+			sample_history: &'a History<u32>,
+			#[case] iter_func: F,
+			#[case] applicable_range: Range<u32>,
+		) where
+			F: Fn(&'a History<u32>) -> I,
+			I: Iterator<Item = &'a u32>,
+		{
+			let mut iter = iter_func(sample_history);
+
+			for i in applicable_range {
+				assert_eq!(iter.next(), Some(&i));
+			}
+
+			assert_eq!(iter.next(), None);
 		}
-
-		assert_eq!(iter.next(), None);
 	}
 
 	#[rstest]
