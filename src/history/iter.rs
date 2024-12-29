@@ -133,7 +133,7 @@ impl<'a, T> Iterator for UndoneIter<'a, T> {
 
 #[cfg(test)]
 mod tests {
-	use crate::history::History;
+	use super::super::History;
 	use core::ops::Range;
 	use rstest::{fixture, rstest};
 
@@ -158,8 +158,7 @@ mod tests {
 	// * Iter: `Iterator::size_hint`
 	// * CommittedIter: `Iterator::size_hint`
 	// * UndoneIter: `Iterator::size_hint`
-
-	mod check_iterator {
+	mod trait_iterator {
 		use super::*;
 
 		#[rstest]
@@ -188,7 +187,7 @@ mod tests {
 	#[case::iter(History::iter, VALUE_RANGE)]
 	#[case::committed_iter(History::iter_committed, COMMITTED_RANGE)]
 	#[case::undone_iter(History::iter_undone, UNDONE_RANGE)]
-	fn check_double_ended_iterator<'a, F, I>(
+	fn trait_double_ended_iterator<'a, F, I>(
 		sample_history: &'a History<u32>,
 		#[case] iter_func: F,
 		#[case] applicable_range: Range<u32>,
@@ -208,7 +207,7 @@ mod tests {
 	#[rstest]
 	#[case::committed_iter(History::iter_committed, COMMITTED_RANGE)]
 	#[case::undone_iter(History::iter_undone, UNDONE_RANGE)]
-	fn check_exact_size_iterator<'a, F, I>(
+	fn trait_exact_size_iterator<'a, F, I>(
 		sample_history: &'a History<u32>,
 		#[case] iter_func: F,
 		#[case] applicable_range: Range<u32>,

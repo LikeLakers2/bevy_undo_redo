@@ -22,6 +22,7 @@ pub use self::iter::{CommittedIter, Iter, UndoneIter};
 // * `get_limit()`, `set_limit()`
 // * `impl<T> IntoIterator for History<T>`
 //   * Plus `iter()`, `iter_committed()`, `iter_undone()`
+#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct History<T> {
 	/// A list of all items that have been committed, in the order they were committed. The
 	/// front-most item is the oldest committed item, and the back-most item is the newest committed
