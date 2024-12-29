@@ -137,15 +137,29 @@ mod tests {
 	use core::ops::Range;
 	use rstest::{fixture, rstest};
 
-	const VALUE_RANGE: Range<u32> = 0..10;
+	const FULL_VALUE_RANGE: Range<u32> = 0..10;
 	const COMMITTED_RANGE: Range<u32> = 0..7;
 	const UNDONE_RANGE: Range<u32> = 7..10;
+
+	/// Checks that `FULL_VALUE_RANGE` is equal to the concatenation of `COMMITTED_RANGE` then
+	/// `UNDONE_RANGE`.
+	#[rstest]
+	fn check_range_constants() {
+		let mut full_value_range = FULL_VALUE_RANGE;
+		for i in COMMITTED_RANGE {
+			assert_eq!(full_value_range.next(), Some(i));
+		}
+		for i in UNDONE_RANGE {
+			assert_eq!(full_value_range.next(), Some(i));
+		}
+		assert_eq!(full_value_range.next(), None);
+	}
 
 	#[fixture]
 	#[once]
 	fn sample_history() -> History<u32> {
 		let mut history = History::new();
-		for i in VALUE_RANGE {
+		for i in FULL_VALUE_RANGE {
 			history.push(i);
 		}
 		for _ in UNDONE_RANGE {
@@ -162,7 +176,7 @@ mod tests {
 		use super::*;
 
 		#[rstest]
-		#[case::iter(History::iter, VALUE_RANGE)]
+		#[case::iter(History::iter, FULL_VALUE_RANGE)]
 		#[case::committed_iter(History::iter_committed, COMMITTED_RANGE)]
 		#[case::undone_iter(History::iter_undone, UNDONE_RANGE)]
 		fn next<'a, F, I>(
@@ -184,7 +198,7 @@ mod tests {
 	}
 
 	#[rstest]
-	#[case::iter(History::iter, VALUE_RANGE)]
+	#[case::iter(History::iter, FULL_VALUE_RANGE)]
 	#[case::committed_iter(History::iter_committed, COMMITTED_RANGE)]
 	#[case::undone_iter(History::iter_undone, UNDONE_RANGE)]
 	fn trait_double_ended_iterator<'a, F, I>(
